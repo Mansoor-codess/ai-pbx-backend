@@ -91,7 +91,8 @@ ai_pbx_backend/
 │
 ├── .gitignore
 ├── README.md
-```
+├── requirements.txt
+
 
 ---
 
