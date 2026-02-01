@@ -1,268 +1,311 @@
-# AI PBX Backend – FastAPI Voice & AI Microservice
+🚀 AI-PBX Backend System — FastAPI Voice & AI Microservice
 
-This project simulates a production-style PBX backend system that ingests real-time audio metadata, performs background AI transcription with retry handling, manages call state transitions, and broadcasts live updates via WebSockets.
+A high-performance asynchronous backend system designed to simulate an enterprise-grade PBX (Private Branch Exchange) AI routing service. This project demonstrates scalable API ingestion, fault-tolerant AI orchestration, database concurrency handling, and real-time WebSocket communication.
 
-It is designed to demonstrate asynchronous backend architecture, concurrency safety, and fault-tolerant AI orchestration.
+This system is built as part of a technical evaluation for the FastAPI Backend Intern (Voice & AI Team) role.
 
----
+📌 Problem Statement
 
-## 🚀 Features Implemented
+Modern PBX systems handle thousands of concurrent calls. When human agents are unavailable, calls must be routed to AI voice bots. These AI services are often slow and unreliable.
 
-- Async FastAPI ingestion endpoint
-- Non-blocking packet streaming (<50ms response)
-- PostgreSQL async database integration
-- Call state machine management
-- Race condition safe packet handling
-- Row-level locking for concurrency protection
-- Flaky AI service simulation (25% failure rate)
-- Exponential backoff retry strategy
-- Background AI processing
-- WebSocket real-time updates
-- Integration testing with pytest + httpx
+This project solves the following challenges:
 
----
+High-throughput packet ingestion
 
-## 🏗 Architecture Overview
+Maintaining packet order
 
-### Packet Ingestion Flow
+Handling flaky AI APIs
 
-1. Audio packets are sent to `/v1/call/stream/{call_id}`
-2. Packet sequence order is validated
-3. Data is stored asynchronously in PostgreSQL
-4. API returns immediately with 202 Accepted
-5. Processing continues in background
+Background processing
 
----
+Concurrency & race condition handling
 
-### AI Processing Flow
+Real-time supervisor updates
 
-- External AI API is simulated with random latency and failure
-- Automatic retry logic handles failures using exponential backoff
-- Background task ensures API remains non-blocking
-- Final transcription result updates database state
-- WebSocket broadcasts status update
+🎯 Project Goals
 
----
+✔ Accept streaming audio metadata asynchronously
+✔ Process AI transcription without blocking API
+✔ Maintain call lifecycle state machine
+✔ Handle concurrent database writes safely
+✔ Recover from AI failures automatically
+✔ Broadcast live system updates
 
-## 🔁 Call State Machine
+⚙ Core Features
+🚀 Asynchronous API Architecture
 
-Each call transitions through the following states:
+Non-blocking FastAPI endpoints
 
-- IN_PROGRESS  
-- COMPLETED  
-- PROCESSING_AI  
-- FAILED  
-- ARCHIVED  
+Sub-50ms response target
 
-State changes are safely handled inside database transactions.
+Async SQLAlchemy engine
 
----
+📦 Packet Streaming Validation
 
-## ⚙ Technology Stack
+Accepts streaming packet metadata
 
-- FastAPI (Async Python Backend)
-- PostgreSQL
-- SQLAlchemy Async ORM
-- asyncpg Driver
-- WebSockets
-- pytest + httpx
-- Python 3.11
-- Uvicorn ASGI Server
+Sequence validation logic
 
----
+Missing packet detection with logging
 
-## 📂 Project Structure
+No request blocking
 
-```
+🔁 Call State Machine
+
+Each call follows a strict lifecycle:
+
+State	Description
+IN_PROGRESS	Call streaming active
+COMPLETED	Streaming finished
+PROCESSING_AI	AI transcription running
+FAILED	AI processing failed
+ARCHIVED	Final state after success
+🤖 AI Service Simulation
+
+A mock transcription service is implemented to simulate real AI provider behavior:
+
+✔ 25% random failure rate
+✔ 1–3 second random latency
+✔ Automatic retry with exponential backoff
+✔ Fault tolerant background execution
+
+🔄 Retry Strategy (Production Grade)
+
+The system retries failed AI requests using:
+
+Exponential backoff
+
+Async task scheduling
+
+Graceful error recovery
+
+This prevents system failure during third-party outages.
+
+🌐 Real-Time WebSocket Updates
+
+Supervisors can monitor call processing live.
+
+WebSocket provides:
+
+Live status broadcast
+
+Processing completion alerts
+
+Error notifications
+
+⚠ Concurrency Safety
+
+Race conditions occur when two packets arrive simultaneously.
+
+This project prevents corruption by using:
+
+✔ PostgreSQL row-level locking
+✔ SELECT FOR UPDATE strategy
+✔ Transaction based commits
+
+🧪 Integration Testing
+
+A real concurrency test is implemented using:
+
+pytest
+
+httpx AsyncClient
+
+asyncio.gather
+
+This simulates two packets arriving at the exact same time.
+
+🏗 System Architecture
+Client
+   │
+   ▼
+FastAPI Async API
+   │
+   ├── Packet Validation
+   ├── Database Transaction
+   ├── Background AI Task
+   │
+   ▼
+PostgreSQL (Async)
+   │
+   ▼
+AI Processing Layer (Mock)
+   │
+   ▼
+WebSocket Broadcast
+
+🧠 Design Principles Used
+
+Non-blocking architecture
+
+Separation of concerns
+
+Async IO everywhere
+
+Fault tolerance
+
+Database consistency
+
+Scalable microservice pattern
+
+🛠 Technology Stack
+Layer	Technology
+Backend API	FastAPI
+Async Server	Uvicorn
+Database	PostgreSQL
+ORM	SQLAlchemy Async
+Driver	AsyncPG
+Testing	Pytest + HTTPX
+WebSockets	Starlette
+Language	Python 3.11
+📁 Project Structure
 ai_pbx_backend/
 │
 ├── app/
-│   ├── main.py
-│   ├── database.py
-│   ├── models.py
-│   ├── schemas.py
-│   ├── ai_service.py
-│   ├── retry.py
-│   ├── websocket_manager.py
+│   ├── main.py                 # FastAPI app & routes
+│   ├── database.py             # Async DB connection
+│   ├── models.py               # ORM models
+│   ├── schemas.py              # Pydantic schemas
+│   ├── ai_service.py           # Mock AI service
+│   ├── retry.py                # Exponential retry logic
+│   ├── websocket_manager.py    # WebSocket broadcast manager
 │
 ├── tests/
-│   ├── test_race_condition.py
+│   ├── test_race_condition.py  # Concurrency test
 │   ├── conftest.py
 │
 ├── .gitignore
 ├── README.md
 ├── requirements.txt
 
-
----
-
-## 🛠 Setup Instructions (Local Environment)
-
-### Step 1 — Clone Repository
-
-```bash
+⚙ Local Setup Guide
+1️⃣ Clone Repository
 git clone https://github.com/Mansoor-codess/ai-pbx-backend.git
 cd ai-pbx-backend
-```
 
----
-
-### Step 2 — Create Virtual Environment
-
-```bash
+2️⃣ Create Virtual Environment
 python -m venv venv
-```
+
 
 Activate:
 
 Windows:
 
-```bash
 venv\Scripts\activate
-```
+
 
 Linux / Mac:
 
-```bash
 source venv/bin/activate
-```
 
----
+3️⃣ Install Dependencies
+pip install -r requirements.txt
 
-### Step 3 — Install Dependencies
-
-```bash
-pip install fastapi uvicorn sqlalchemy asyncpg pytest httpx python-dotenv
-```
-
----
-
-### Step 4 — PostgreSQL Database Setup
-
-Make sure PostgreSQL is running on port `5432`.
+4️⃣ PostgreSQL Configuration
 
 Create database:
 
-```sql
 CREATE DATABASE pbx_db;
-```
+
 
 Update database URL inside:
 
-```
 app/database.py
-```
 
-Example format:
 
-```
-postgresql+asyncpg://postgres:YOUR_PASSWORD@localhost:5432/pbx_db
-```
+Example:
 
----
+postgresql+asyncpg://postgres:password@localhost:5432/pbx_db
 
-### Step 5 — Run Backend Server
-
-```bash
+5️⃣ Run Backend Server
 uvicorn app.main:app --reload
-```
 
-Server will start at:
 
-```
+Server URL:
+
 http://127.0.0.1:8000
-```
 
-Swagger UI:
+📡 API Documentation
 
-```
+Swagger UI available at:
+
 http://127.0.0.1:8000/docs
-```
 
----
+📤 Packet Ingestion Endpoint
+POST
+/v1/call/stream/{call_id}
 
-## 📡 API Endpoints
-
-### Packet Ingestion Endpoint
-
-```
-POST /v1/call/stream/{call_id}
-```
-
-Request Body Example:
-
-```json
+Request Body
 {
   "sequence": 1,
   "data": "audio chunk",
   "timestamp": 1.25
 }
-```
 
-Response:
-
-```
+Response
 202 Accepted
-```
 
----
-
-### WebSocket Endpoint
-
-```
+🔌 WebSocket Endpoint
 ws://127.0.0.1:8000/ws
-```
 
-Used to receive live processing updates.
 
----
+Used for real-time status streaming.
 
-## 🧪 Testing (Race Condition Simulation)
+🧪 Running Tests
 
-Run integration tests:
+Execute:
 
-```bash
 pytest
-```
 
-This test simulates:
 
-- Two packets arriving at the same time
-- Database locking behavior
-- Concurrency handling
-- Data consistency
+Expected Output:
 
-Expected output:
-
-```
 1 passed
-```
 
----
 
-## ⚠ Reliability Handling
+This validates:
 
-The mock AI transcription service simulates real-world instability:
+✔ Race condition handling
+✔ Concurrent API requests
+✔ Database locking behavior
 
-- 25% failure probability
-- Random latency between 1–3 seconds
-- Automatic retry with exponential backoff
-- Prevents manual retry intervention
+🚦 Reliability Engineering
 
----
+The backend ensures production-style reliability using:
 
-## ⚡ Performance Design
+Retry mechanism
 
-- Fully asynchronous API endpoints
-- Non-blocking database operations
-- Background task execution
-- Row-level locking for data safety
-- Efficient async connection pooling
+Async background processing
 
----
+Database transaction safety
 
-## 👨‍💻 Author
+Error state recovery
 
-Mansoor Alam  
-FastAPI Backend Intern Evaluation Submission  
-Articence – Voice & AI Team
+📊 Performance Considerations
+
+Async IO based design
+
+No blocking threads
+
+Connection pooling
+
+Lightweight request handling
+
+Horizontal scaling friendly
+
+🎓 Learning Outcomes
+
+This project demonstrates:
+
+✔ Async backend development
+✔ Database concurrency control
+✔ Microservice reliability patterns
+✔ WebSocket implementation
+✔ Testing async APIs
+✔ Production design thinking
+
+👨‍💻 Author
+
+Mansoor Alam
+FastAPI Backend Intern Evaluation Submission
+Voice & AI Team
